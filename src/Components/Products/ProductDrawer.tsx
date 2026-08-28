@@ -2,8 +2,6 @@ import { useEffect } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-
-// UI Components
 import {
   Box,
   Button,
@@ -24,9 +22,7 @@ import {
   useUpdateProductMutation,
 } from "../../Store/api/productsApi.ts";
 
-// ----------------------------------------------------------------------
-// 1. Validation Schema & Types
-// ----------------------------------------------------------------------
+//  Validation Schema & Types
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
@@ -52,10 +48,6 @@ const INITIAL_FORM_STATE: ProductFormValues = {
   imageUrl: "",
 };
 
-// ----------------------------------------------------------------------
-// 2. Business Logic Helpers
-// ----------------------------------------------------------------------
-
 /**
  * Automatically determines the product status based on inventory levels.
  * Extracted from the component so it can be easily unit-tested.
@@ -67,9 +59,7 @@ const calculateProductStatus = (stockCount: number) => {
   return "Active";
 };
 
-// ----------------------------------------------------------------------
-// 3. Main Component
-// ----------------------------------------------------------------------
+//  Main Component
 
 interface ProductDrawerProps {
   open: boolean;
@@ -104,7 +94,7 @@ export default function ProductDrawer({
 
   // --- Effects ---
 
-  // 1. Sync form data when the drawer opens or the target product changes
+  //  Sync form data when the drawer opens or the target product changes
   useEffect(() => {
     if (open) {
       const formData = product
@@ -115,7 +105,7 @@ export default function ProductDrawer({
     }
   }, [open, product, reset]);
 
-  // 2. Watch the stock input and auto-update the status field
+  //  Watch the stock input and auto-update the status field
   const currentStock = useWatch({ control, name: "stock" });
 
   useEffect(() => {
@@ -140,7 +130,6 @@ export default function ProductDrawer({
       }
       handleClose();
     } catch (error) {
-      // In a real app, you'd trigger a toast notification here (e.g., enqueueSnackbar)
       console.error("Failed to save product:", error);
     }
   };
@@ -262,7 +251,7 @@ export default function ProductDrawer({
           )}
         />
 
-        {/* Media & Details */}
+        {/* Image and Description */}
         <TextField
           label="Image URL"
           placeholder="https://example.com/image.jpg"
@@ -282,7 +271,7 @@ export default function ProductDrawer({
           {...register("description")}
         />
 
-        {/* Action Buttons */}
+        {/* cancel -- save | add */}
         <Box sx={{ display: "flex", gap: 1.5, mt: 1 }}>
           <Button
             fullWidth
