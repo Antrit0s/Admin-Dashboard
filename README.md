@@ -84,3 +84,11 @@ Admin-Dashboard/
 ├── tsconfig.json            # Base TypeScript configuration
 ├── tsconfig.app.json        # Frontend application compiler options & type refs
 └── package.json             # Scripts & dependency definitions
+```
+
+---
+
+## 🎬 Inspiration
+
+This project was inspired by this YouTube tutorial series:
+[https://youtu.be/wYpCWwD1oz0?list=PLEYW3pZS6IQ_a-iYAno4VsZonrikphq8L](https://youtu.be/wYpCWwD1oz0?list=PLEYW3pZS6IQ_a-iYAno4VsZonrikphq8L)
