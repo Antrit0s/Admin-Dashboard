@@ -49,8 +49,8 @@ const INITIAL_FORM_STATE: ProductFormValues = {
 };
 
 /**
- * Automatically determines the product status based on inventory levels.
- * Extracted from the component so it can be easily unit-tested.
+ * in add or edit function stock badge active || Low Stock || out of stock it picks auto based on the number
+ *  stock = 0 ? out of stock : stock <10 : low stock : Active 
  */
 const calculateProductStatus = (stockCount: number) => {
   if (Number.isNaN(stockCount)) return "Active"; // Safe fallback
