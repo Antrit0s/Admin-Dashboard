@@ -9,5 +9,5 @@ export const authApi = apiSlice.injectEndpoints({
     }),
   }),
 });
-// uselazy to trigger on submit not on mount
+// uselazy to trigger on submit instead of not on mount
 export const { useLazyLoginQuery } = authApi;
