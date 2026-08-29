@@ -7,7 +7,7 @@ import authReducer from "./Slices/authSlice.ts";
 export const store = configureStore({
   reducer: { [apiSlice.reducerPath]: apiSlice.reducer, auth: authReducer },
 
-  // adding api slice middleware to enable caching ,invalidation
+  //  api slice middleware to enable caching ,invalidation
   middleware: (getDefaultMiddleware) => {
     return getDefaultMiddleware().concat(apiSlice.middleware);
   },
