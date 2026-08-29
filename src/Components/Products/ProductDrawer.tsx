@@ -64,7 +64,7 @@ const calculateProductStatus = (stockCount: number) => {
 interface ProductDrawerProps {
   open: boolean;
   onClose: () => void;
-  product?: product | null; // If passed, we are editing. If undefined/null, we are creating.
+  product?: product | null; // If product edit exisitng one else adding new one.
 }
 
 export default function ProductDrawer({
@@ -114,7 +114,7 @@ export default function ProductDrawer({
     setValue("status", newStatus, { shouldValidate: true });
   }, [currentStock, setValue]);
 
-  // --- Handlers ---
+  // --- reset form data if we close drawer---
 
   const handleClose = () => {
     reset(INITIAL_FORM_STATE);
