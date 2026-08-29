@@ -19,13 +19,14 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
-// schema define validiation rule and type
+// define login scheme must at least be 1 char and string 
 const loginSchema = z.object({
   username: z.string().min(1, "username is required"),
   password: z.string().min(1, "password is required"),
 });
 type LoginFormValues = z.infer<typeof loginSchema>;
 export default function Login() {
+  // handle server error and password visibilty toggler
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const {
@@ -48,6 +49,7 @@ export default function Login() {
         setServerError("Invalid username or password");
         return;
       }
+      //if user found generate token
       const user = result[0];
       const token = `token-${user.id}`;
       dispatch(setCredentials({ user, token }));
@@ -79,6 +81,7 @@ export default function Login() {
             borderColor: "divider",
             bgcolor: "background.paper",
           }}
+          // header
         >
           <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5 }}>
             Sign in
@@ -86,12 +89,14 @@ export default function Login() {
           <Typography variant="body2" sx={{ color: "text.secondary", mb: 3 }}>
             Enter your credentials to sign in
           </Typography>
+      {/* error show to user */}
           {serverError && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {serverError}
             </Alert>
           )}
           <Box component="form" onSubmit={handleSubmit(onSubmit)}>
+            {/*  username and password fields */}
             <TextField
               label="username"
               fullWidth
@@ -113,6 +118,7 @@ export default function Login() {
                 input: {
                   endAdornment: (
                     <InputAdornment position="end">
+                      {/* password toggler button  */}
                       <IconButton
                         onClick={() => setShowPassword((prev) => !prev)}
                         edge="end"
