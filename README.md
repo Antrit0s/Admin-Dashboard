@@ -8,8 +8,8 @@ Designed with an emphasis on strict type safety, modular state architecture, res
 
 ## 🚀 Live Demo & Test Credentials
 
-- **Frontend Deployment (Vercel):** [https://admin-dashboard-antrit0s.vercel.app](https://admin-dashboard-antrit0s.vercel.app)[cite: 1]
-- **Mock REST API Backend (Render):** [https://admin-dashboard-api.onrender.com](https://admin-dashboard-api.onrender.com)[cite: 2]
+- **Frontend Deployment (Vercel):** [https://admin-dashboard-antrit0s.vercel.app](https://admin-dashboard-seven-mu-48.vercel.app/)
+- **Mock REST API Backend (Render):** [https://admin-dashboard-api.onrender.com](https://admin-dashboard-api.onrender.com)
 
 ### 🔑 Demo Login Credentials
 | Field | Value |
