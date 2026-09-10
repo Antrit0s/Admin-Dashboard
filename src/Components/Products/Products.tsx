@@ -1,20 +1,18 @@
-import { useMemo, useState } from "react";
-import {
-  product,
-  useDeleteProductMutation,
-  useGetProductsQuery,
-} from "../../Store/api/productsApi.ts";
+import { ChangeEvent, MouseEvent, useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
 import {
   Avatar,
   Box,
   Button,
   Chip,
   CircularProgress,
-  IconButton,
+  Grid,
   MenuItem,
   Pagination,
   Paper,
   Select,
+  SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
@@ -24,296 +22,406 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import {
-  AddOutlined,
-  DeleteOutlineOutlined,
-  EditOutlined,
-} from "@mui/icons-material";
-import ProductDrawer from "./ProductDrawer.tsx";
+import { AddOutlined as AddIcon } from "@mui/icons-material";
 
-const items_per_page = 8;
+import {
+  Product,
+  useDeleteProductMutation,
+  useGetProductsQuery,
+} from "../../Store/api/productsApi";
+import ActionsMenu from "../ActionsMenu/ActionsMenu";
+import ProductDrawer from "./ProductDrawer";
+
+const ITEMS_PER_PAGE = 8;
+
+const STATUS_CHIP_COLORS: Record<
+  Product["status"],
+  "success" | "warning" | "error"
+> = {
+  Active: "success",
+  "Low Stock": "warning",
+  "Out of Stock": "error",
+};
+
 export default function Products() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [category, setCategory] = useState("all");
+  const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
-  const { data = [], isLoading, isError } = useGetProductsQuery();
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+
+  const { data: products = [], isLoading, isError } = useGetProductsQuery();
+
   const [deleteProduct] = useDeleteProductMutation();
 
-  // Extract categories for the filter dropdown.
+  useEffect(() => {
+    setStatus(searchParams.get("status") ?? "all");
+  }, [searchParams]);
+
   const categories = useMemo(
-    () => Array.from(new Set(data.map((product) => product.category))),
-    [data],
-  );
-  // filtering products
-  const filteredProducts = useMemo(
-    () =>
-      data.filter((p) => {
-        const matchesSearch =
-          p.name.toLowerCase().includes(search.toLowerCase()) ||
-          p.sku.toLowerCase().includes(search.toLowerCase());
-        const matchesCategory =
-          selectedCategory === "all" || p.category === selectedCategory;
-        const matchesStatus =
-          selectedStatus === "all" || p.status === selectedStatus;
-
-        return matchesSearch && matchesCategory && matchesStatus;
-      }),
-    [data, search, selectedCategory, selectedStatus],
+    () => Array.from(new Set(products.map((product) => product.category))),
+    [products],
   );
 
-  // client side pagination
-  const totalPages = Math.ceil(filteredProducts.length / items_per_page);
+  const filteredProducts = useMemo(() => {
+    const searchTerm = search.trim().toLowerCase();
+
+    return products.filter((product) => {
+      const matchesSearch =
+        !searchTerm ||
+        product.name.toLowerCase().includes(searchTerm) ||
+        product.sku.toLowerCase().includes(searchTerm);
+
+      const matchesCategory =
+        category === "all" || product.category === category;
+
+      const matchesStatus = status === "all" || product.status === status;
+
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+  }, [products, search, category, status]);
+
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+
   const paginatedProducts = useMemo(() => {
-    const start = (page - 1) * items_per_page;
-    return filteredProducts.slice(start, start + items_per_page);
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+
+    return filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredProducts, page]);
 
-  // delete function
-  const hanleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this product ?")) {
-      await deleteProduct(id);
-    }
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value);
+    setPage(1);
   };
-  const openAddDrawer = () => {
+
+  const handleCategoryChange = (event: SelectChangeEvent) => {
+    setCategory(event.target.value);
+    setPage(1);
+  };
+
+  const handleStatusChange = (event: SelectChangeEvent) => {
+    const nextStatus = event.target.value;
+
+    setStatus(nextStatus);
+    setPage(1);
+
+    const updatedParams = new URLSearchParams(searchParams);
+
+    if (nextStatus === "all") {
+      updatedParams.delete("status");
+    } else {
+      updatedParams.set("status", nextStatus);
+    }
+
+    setSearchParams(updatedParams);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) {
+      return;
+    }
+
+    await deleteProduct(id);
+  };
+
+  const handleOpenAddDrawer = () => {
     setEditingProduct(null);
     setDrawerOpen(true);
   };
-  const openEditDrawer = (product: product) => {
-    setEditingProduct(product);
+
+  const handleOpenEditDrawer = (productToEdit: Product) => {
+    setEditingProduct(productToEdit);
     setDrawerOpen(true);
   };
-  const closeDrawer = () => {
+
+  const handleCloseDrawer = () => {
     setDrawerOpen(false);
     setEditingProduct(null);
   };
 
-  return (
-    <Box>
-      {/* header      */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            Products
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage your store inventory
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddOutlined />}
-          onClick={openAddDrawer}
-          sx={{ textTransform: "none", borderRadius: 2 }}
-        >
-          Add Product
-        </Button>
-      </Box>
-      {/* filter bar  */}
-      <Paper
-        elevation={0}
-        sx={{
-          display: "flex",
-          gap: 2,
-          p: 2,
-          mb: 2,
-          border: "1px solid",
-          borderColor: "divider",
-          flexWrap: "wrap",
-        }}
-      >
-        <TextField
-          placeholder="Search by name or SKU"
-          size="small"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          sx={{ flexGrow: 1, minWidth: 200 }}
-        />
-        <Select
-          size="small"
-          value={selectedCategory}
-          onChange={(e) => {
-            setSelectedCategory(e.target.value);
-            setPage(1);
-          }}
-          sx={{ minWidth: 160 }}
-        >
-          <MenuItem value="all">All Categories</MenuItem>
-          {categories.map((cat) => (
-            <MenuItem key={cat} value={cat}>
-              {cat}
-            </MenuItem>
-          ))}
-        </Select>
-        <Select
-          size="small"
-          value={selectedStatus}
-          onChange={(e) => {
-            setSelectedStatus(e.target.value);
-            setPage(1);
-          }}
-          sx={{ minWidth: 160 }}
-        >
-          <MenuItem value="all">All statuses</MenuItem>
-          <MenuItem value="Active">Active</MenuItem>
-          <MenuItem value="Low Stock">Low stock</MenuItem>
-          <MenuItem value="Out of Stock">Out of Stock</MenuItem>
-        </Select>
-      </Paper>
-      {/* table for showing porducts */}
-      <TableContainer
-        component={Paper}
-        elevation={0}
-        sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2 }}
-      >
-        <Table>
-          {/* table header  */}
-          <TableHead>
-            <TableRow>
-              <TableCell>Product</TableCell>
-              <TableCell>SKU</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Stock</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell align="right">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          {/* table body  */}
-          <TableBody>
-            {/* is Loading  */}
-            {isLoading && (
-              <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                  <CircularProgress size={28} />
-                </TableCell>
-              </TableRow>
-            )}
-            {/* is Error  */}
-            {isError && (
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  align="center"
-                  sx={{ py: 4, color: "error.main" }}
-                >
-                  Failed to load Products.
-                </TableCell>
-              </TableRow>
-            )}
-            {/* no products found >>filtered products ==0  */}
-            {!isLoading && !isError && filteredProducts.length === 0 && (
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  align="center"
-                  sx={{ py: 4, color: "text.secondary" }}
-                >
-                  No products found matching your search
-                </TableCell>
-              </TableRow>
-            )}
+  const handleToggleMenu = (id: string) => {
+    setActiveMenuId((currentId) => (currentId === id ? null : id));
+  };
 
-            {paginatedProducts.map((data) => (
-              <TableRow key={data.id} hover>
-                <TableCell>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                    <Avatar
-                      variant="rounded"
-                      src={data.imageUrl}
-                      alt={data.name}
-                      sx={{ width: 44, height: 44, bgcolor: "grey.100" }}
-                    />
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {data.name}
-                    </Typography>
-                  </Box>
-                </TableCell>
-                <TableCell>{data.sku}</TableCell>
-                <TableCell>{data.category}</TableCell>
-                <TableCell> ${Number(data.price).toFixed(2)} </TableCell>
-                <TableCell
-                  sx={{
-                    fontWeight: 600,
-                    color:
-                      data.stock <= 5
-                        ? "error.main"
-                        : data.stock <= 15
-                          ? "warning.main"
-                          : "success.main",
-                  }}
-                >
-                  {data.stock}
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={data.status}
-                    size="small"
-                    color={
-                      data.status === "Active"
-                        ? "success"
-                        : data.status === "Low Stock"
-                          ? "warning"
-                          : "error"
-                    }
-                  />
-                </TableCell>
-                <TableCell align="right">
-                  <IconButton
-                    size="small"
-                    color="primary"
-                    onClick={() => openEditDrawer(data)}
-                  >
-                    <EditOutlined fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={() => hanleDelete(data.id)}
-                  >
-                    <DeleteOutlineOutlined fontSize="small" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {/* pagination to show other products where we set no. of prod to be shown is 8 */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mt: 2,
-          flexWrap: "wrap",
-          gap: 1,
+  const handleRowClick = (id: string) => {
+    navigate(`/products/${id}`);
+  };
+
+  return (
+    <Grid
+      container
+      spacing={2}
+      sx={{ alignItems: "stretch", width: "100%", m: 0 }}
+    >
+      <Grid
+        size={{
+          xs: drawerOpen ? 7.5 : 12,
+          xl: drawerOpen ? 8.5 : 12,
         }}
       >
-        <Typography variant="body2" color="text.secondary">
-          Showing{" "}
-          {filteredProducts.length === 0 ? 0 : (page - 1) * items_per_page + 1}{" "}
-          to {Math.min(page * items_per_page, filteredProducts.length)} of{" "}
-          {filteredProducts.length} results
-        </Typography>
-        <Pagination
-          count={totalPages}
-          page={page}
-          onChange={(_, val) => setPage(val)}
-          size="small"
-          color="primary"
-        />
-      </Box>
-      <ProductDrawer
-        open={drawerOpen}
-        onClose={closeDrawer}
-        product={editingProduct}
-      />
-    </Box>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 2,
+            mb: 3,
+          }}
+        >
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>
+              Products
+            </Typography>
+
+            <Typography variant="body2" color="text.secondary">
+              Manage your store inventory
+            </Typography>
+          </Box>
+
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleOpenAddDrawer}
+            sx={{
+              textTransform: "none",
+              borderRadius: 2,
+              whiteSpace: "nowrap",
+            }}
+          >
+            Add Product
+          </Button>
+        </Box>
+
+        <Paper
+          elevation={0}
+          sx={{
+            display: "flex",
+            gap: 1.5,
+            p: 2,
+            mb: 2,
+            border: "1px solid",
+            borderColor: "divider",
+            alignItems: "center",
+          }}
+        >
+          <TextField
+            placeholder="Search by name or SKU"
+            size="small"
+            value={search}
+            onChange={handleSearchChange}
+            sx={{ flex: 2, minWidth: 140 }}
+          />
+
+          <Select
+            size="small"
+            value={category}
+            onChange={handleCategoryChange}
+            sx={{ flex: 1, minWidth: 120 }}
+          >
+            <MenuItem value="all">All Categories</MenuItem>
+
+            {categories.map((categoryName) => (
+              <MenuItem key={categoryName} value={categoryName}>
+                {categoryName}
+              </MenuItem>
+            ))}
+          </Select>
+
+          <Select
+            size="small"
+            value={status}
+            onChange={handleStatusChange}
+            sx={{ flex: 1, minWidth: 120 }}
+          >
+            <MenuItem value="all">All Status</MenuItem>
+            <MenuItem value="Active">Active</MenuItem>
+            <MenuItem value="Low Stock">Low Stock</MenuItem>
+            <MenuItem value="Out of Stock">Out of Stock</MenuItem>
+          </Select>
+        </Paper>
+
+        {isLoading ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              py: 6,
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : isError ? (
+          <Paper sx={{ p: 3 }}>
+            <Typography color="error">Failed to load products.</Typography>
+          </Paper>
+        ) : (
+          <TableContainer
+            component={Paper}
+            elevation={0}
+            sx={{
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              overflowX: "auto",
+            }}
+          >
+            <Table sx={{ minWidth: 550 }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ whiteSpace: "nowrap" }}>Product</TableCell>
+                  <TableCell sx={{ whiteSpace: "nowrap" }}>SKU</TableCell>
+                  <TableCell sx={{ whiteSpace: "nowrap" }}>Category</TableCell>
+                  <TableCell sx={{ whiteSpace: "nowrap" }}>Price</TableCell>
+                  <TableCell sx={{ whiteSpace: "nowrap" }}>Stock</TableCell>
+                  <TableCell sx={{ whiteSpace: "nowrap" }}>Status</TableCell>
+                  <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
+                    Actions
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {paginatedProducts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        No products match your criteria.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginatedProducts.map((product) => (
+                    <TableRow
+                      key={product.id}
+                      hover
+                      onClick={() => handleRowClick(product.id)}
+                      sx={{ cursor: "pointer" }}
+                    >
+                      <TableCell>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
+                          }}
+                        >
+                          <Avatar
+                            src={product.imageUrl}
+                            variant="rounded"
+                            sx={{ width: 36, height: 36 }}
+                          />
+
+                          <Typography
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: "0.875rem",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              maxWidth: 150,
+                            }}
+                          >
+                            {product.name}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+
+                      <TableCell
+                        sx={{
+                          whiteSpace: "nowrap",
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        {product.sku}
+                      </TableCell>
+
+                      <TableCell
+                        sx={{
+                          whiteSpace: "nowrap",
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        {product.category}
+                      </TableCell>
+
+                      <TableCell
+                        sx={{
+                          whiteSpace: "nowrap",
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        ${product.price.toFixed(2)}
+                      </TableCell>
+
+                      <TableCell
+                        sx={{
+                          whiteSpace: "nowrap",
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        {product.stock}
+                      </TableCell>
+
+                      <TableCell sx={{ whiteSpace: "nowrap" }}>
+                        <Chip
+                          label={product.status}
+                          size="small"
+                          color={STATUS_CHIP_COLORS[product.status]}
+                        />
+                      </TableCell>
+
+                      <TableCell
+                        align="right"
+                        onClick={(event: MouseEvent) => event.stopPropagation()}
+                      >
+                        <ActionsMenu
+                          id={product.id}
+                          isOpen={activeMenuId === product.id}
+                          onToggle={handleToggleMenu}
+                          onEdit={() => handleOpenEditDrawer(product)}
+                          onDelete={() => handleDelete(product.id)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+
+        {totalPages > 1 && (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mt: 3,
+            }}
+          >
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(_, value) => setPage(value)}
+              color="primary"
+            />
+          </Box>
+        )}
+      </Grid>
+
+      {drawerOpen && (
+        <Grid size={{ xs: 4.5, xl: 3.5 }}>
+          <ProductDrawer
+            open={drawerOpen}
+            onClose={handleCloseDrawer}
+            product={editingProduct}
+          />
+        </Grid>
+      )}
+    </Grid>
   );
 }

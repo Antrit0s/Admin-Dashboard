@@ -8,6 +8,7 @@ import {
   ListItemText,
   Tooltip,
   Typography,
+  useMediaQuery,
 } from "@mui/material";
 import {
   BarChartOutlined,
@@ -23,9 +24,12 @@ import {
   ShoppingCartOutlined,
 } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
+
 import { ThemeToggleButton } from "./ThemeToggleButton.tsx";
 import { useAppDispatch } from "../../Store/Store.ts";
 import { logout } from "../../Store/Slices/authSlice.ts";
+import theme from "../../Theme.tsx";
+
 const NAV_ITEMS = [
   { label: "Dashboard", path: "/", icon: DashboardOutlined },
   { label: "Products", path: "/products", icon: Inventory2Outlined },
@@ -36,21 +40,131 @@ const NAV_ITEMS = [
   { label: "Settings", path: "/settings", icon: SettingsOutlined },
 ];
 
-interface Navbarprops {
+interface NavbarProps {
   open: boolean;
   onToggle: () => void;
 }
+
 const EXPANDED_WIDTH = 240;
 const COLLAPSED_WIDTH = 72;
 
-export default function Navbar({ open, onToggle }: Navbarprops) {
+export default function Navbar({ open, onToggle }: NavbarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+
   const handleLogout = () => {
     dispatch(logout());
     navigate("/login", { replace: true });
   };
+
+  const isActivePath = (path: string) =>
+    location.pathname === path ||
+    (path !== "/" && location.pathname.startsWith(path));
+
+  // Use a compact horizontal navigation on smaller screens.
+  if (!isDesktop) {
+    return (
+      <Box
+        component="header"
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 1,
+          height: 56,
+          px: 1.5,
+          bgcolor: "background.paper",
+          color: "text.secondary",
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          position: "sticky",
+          top: 0,
+          zIndex: (t) => t.zIndex.appBar,
+        }}
+      >
+        <Avatar
+          sx={{
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
+            width: 32,
+            height: 32,
+            flexShrink: 0,
+          }}
+        >
+          <ShoppingBag fontSize="small" />
+        </Avatar>
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            flexGrow: 1,
+            justifyContent: "center",
+            overflowX: "auto",
+            px: 0.5,
+            "&::-webkit-scrollbar": { display: "none" },
+            scrollbarWidth: "none",
+          }}
+        >
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = isActivePath(item.path);
+
+            return (
+              <Tooltip key={item.path} title={item.label} arrow>
+                <IconButton
+                  onClick={() => navigate(item.path)}
+                  size="small"
+                  sx={{
+                    flexShrink: 0,
+                    bgcolor: isActive ? "primary.main" : "transparent",
+                    color: isActive ? "primary.contrastText" : "text.secondary",
+                    "&:hover": {
+                      bgcolor: isActive ? "primary.dark" : "action.hover",
+                      color: isActive ? "primary.contrastText" : "text.primary",
+                    },
+                  }}
+                >
+                  <Icon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            );
+          })}
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            flexShrink: 0,
+          }}
+        >
+          <ThemeToggleButton />
+
+          <Tooltip title="Sign Out" arrow>
+            <IconButton
+              onClick={handleLogout}
+              size="small"
+              sx={{
+                color: "text.secondary",
+                "&:hover": {
+                  bgcolor: "action.hover",
+                  color: "error.main",
+                },
+              }}
+            >
+              <Logout fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{
@@ -71,7 +185,7 @@ export default function Navbar({ open, onToggle }: Navbarprops) {
         boxSizing: "border-box",
       }}
     >
-      {/* brand logo and collapse toggle */}
+      {/* Brand and sidebar collapse control */}
       <Box
         sx={{
           display: "flex",
@@ -100,6 +214,7 @@ export default function Navbar({ open, onToggle }: Navbarprops) {
           >
             <ShoppingBag fontSize="small" />
           </Avatar>
+
           {open && (
             <Typography
               variant="subtitle1"
@@ -110,6 +225,7 @@ export default function Navbar({ open, onToggle }: Navbarprops) {
             </Typography>
           )}
         </Box>
+
         {open && (
           <IconButton
             onClick={onToggle}
@@ -124,14 +240,11 @@ export default function Navbar({ open, onToggle }: Navbarprops) {
         )}
       </Box>
 
-      {/* Navigation Items */}
       <List sx={{ flexGrow: 1, p: 0 }}>
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
-          const isActive =
-            // making sure that home root not styled permenantly and nested path are also making it active
-            location.pathname === item.path ||
-            (item.path !== "/" && location.pathname.startsWith(item.path));
+          const isActive = isActivePath(item.path);
+
           return (
             <Tooltip
               key={item.path}
@@ -158,7 +271,9 @@ export default function Navbar({ open, onToggle }: Navbarprops) {
                   "&:hover:not(.Mui-selected)": {
                     bgcolor: "action.hover",
                     color: "text.primary",
-                    "& .MuiListItemIcon-root": { color: "text.primary" },
+                    "& .MuiListItemIcon-root": {
+                      color: "text.primary",
+                    },
                   },
                 }}
               >
@@ -193,69 +308,90 @@ export default function Navbar({ open, onToggle }: Navbarprops) {
           );
         })}
       </List>
-      {/* sign out */}
-      <Tooltip title={!open ? "sign out" : ""} placement="right" arrow>
-        <ListItemButton
-          onClick={handleLogout}
-          sx={{
-            flex: "0 0 auto",
-            height: "auto",
-            borderRadius: 1.5,
-            mb: 1,
-            px: open ? 2 : 1.5,
-            justifyContent: open ? "initial" : "center",
-            color: "text.secondary",
-            "&:hover": {
-              bgcolor: "action.hover",
-              color: "error.main",
-              "& .MuiListItemIcon-root": { color: "error.main" },
-            },
-          }}
-        >
-          <ListItemIcon
-            sx={{
-              minWidth: 0,
-              mr: open ? 2 : "auto",
-              justifyContent: "center",
-              color: "inherit",
-            }}
-          >
-            <Logout fontSize="small" />
-          </ListItemIcon>
-          {open && (
-            <ListItemText
-              primary={
-                <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
-                  sign out
-                </Typography>
-              }
-            />
-          )}
-        </ListItemButton>
-      </Tooltip>
 
-      {/* themtoggler */}
+      {/* Theme toggle, sign out, and sidebar expand controls */}
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: open ? "space-between" : "center",
+          flexDirection: open ? "row" : "column",
+          gap: open ? 0 : 1,
           pt: 1,
+          px: open ? 1 : 0,
         }}
       >
-        <ThemeToggleButton />
-        {!open && (
-          <IconButton
-            onClick={onToggle}
-            size="small"
+        <Tooltip title={!open ? "Sign Out" : ""} placement="right" arrow>
+          <ListItemButton
+            onClick={handleLogout}
             sx={{
+              flex: open ? "1 1 auto" : "0 0 auto",
+              height: 40,
+              borderRadius: 1.5,
+              px: open ? 2 : 1.5,
+              justifyContent: open ? "flex-start" : "center",
               color: "text.secondary",
-              "&:hover": { color: "text.primary" },
+              "&:hover": {
+                bgcolor: "action.hover",
+                color: "error.main",
+                "& .MuiListItemIcon-root": {
+                  color: "error.main",
+                },
+              },
             }}
           >
-            <ChevronRight fontSize="small" />
-          </IconButton>
-        )}
+            <ListItemIcon
+              sx={{
+                minWidth: 0,
+                mr: open ? 2 : 0,
+                justifyContent: "center",
+                color: "inherit",
+              }}
+            >
+              <Logout fontSize="small" />
+            </ListItemIcon>
+
+            {open && (
+              <ListItemText
+                primary={
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    Sign Out
+                  </Typography>
+                }
+              />
+            )}
+          </ListItemButton>
+        </Tooltip>
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 0.5,
+            flexDirection: open ? "row" : "column",
+          }}
+        >
+          <ThemeToggleButton />
+
+          {!open && (
+            <Tooltip title="Expand Sidebar" placement="right" arrow>
+              <IconButton
+                onClick={onToggle}
+                size="small"
+                sx={{
+                  color: "text.secondary",
+                  "&:hover": {
+                    color: "text.primary",
+                    bgcolor: "action.hover",
+                  },
+                }}
+              >
+                <ChevronRight fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
       </Box>
     </Box>
   );

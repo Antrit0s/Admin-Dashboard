@@ -1,6 +1,6 @@
-import { apiSlice } from "./apiSlice.ts";
+import { apiSlice } from "./apiSlice";
 
-export interface product {
+export interface Product {
   id: string;
   name: string;
   sku: string;
@@ -10,40 +10,60 @@ export interface product {
   status: "Active" | "Low Stock" | "Out of Stock";
   imageUrl?: string;
   description?: string;
+  createdAt?: string;
 }
 
-export type NewProduct = Omit<product, "id">;
+export type NewProduct = Omit<Product, "id" | "createdAt">;
 
-export const productApi = apiSlice.injectEndpoints({
+export const productsApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getProducts: builder.query<product[], void>({
-      query: () => "/products",
-      providesTags: ["Products"],
+    getProducts: builder.query<Product[], void>({
+      query: () => "/products?_sort=-createdAt",
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: "Products" as const, id })),
+              { type: "Products" as const, id: "LIST" },
+            ]
+          : [{ type: "Products" as const, id: "LIST" }],
     }),
 
-    addProduct: builder.mutation<product, NewProduct>({
+    addProduct: builder.mutation<Product, NewProduct>({
       query: (newProduct) => ({
         url: "/products",
         method: "POST",
-        body: newProduct,
+        body: {
+          ...newProduct,
+          createdAt: new Date().toISOString(),
+        },
       }),
-      //   refetching prod after success add
-      invalidatesTags: ["Products"],
+      invalidatesTags: [{ type: "Products", id: "LIST" }],
     }),
-    updateProduct: builder.mutation<product, product>({
-      query: (product) => ({
-        url: `/products/${product.id}`,
-        method: "PUT",
-        body: product,
+
+    updateProduct: builder.mutation<
+      Product,
+      Partial<Product> & Pick<Product, "id">
+    >({
+      query: ({ id, ...patch }) => ({
+        url: `/products/${id}`,
+        method: "PATCH",
+        body: patch,
       }),
-      invalidatesTags: ["Products"],
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: "Products", id },
+        { type: "Products", id: "LIST" },
+      ],
     }),
-    deleteProduct: builder.mutation<void, string>({
+
+    deleteProduct: builder.mutation<{ success: boolean; id: string }, string>({
       query: (id) => ({
         url: `/products/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Products"],
+      invalidatesTags: (_result, _error, id) => [
+        { type: "Products", id },
+        { type: "Products", id: "LIST" },
+      ],
     }),
   }),
 });
@@ -53,4 +73,4 @@ export const {
   useAddProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
-} = productApi;
+} = productsApi;

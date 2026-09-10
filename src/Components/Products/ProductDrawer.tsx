@@ -1,304 +1,389 @@
 import { useEffect } from "react";
-import { useForm, Controller, useWatch } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+
 import {
   Box,
   Button,
   CircularProgress,
-  Drawer,
+  Divider,
   IconButton,
   MenuItem,
-  Select,
+  Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { CloseOutlined } from "@mui/icons-material";
+import CloseIcon from "@mui/icons-material/Close";
 
-// API & Types
 import {
-  product,
+  NewProduct,
+  Product,
   useAddProductMutation,
   useUpdateProductMutation,
-} from "../../Store/api/productsApi.ts";
-
-//  Validation Schema & Types
-
-const productSchema = z.object({
-  name: z.string().min(1, "Product name is required"),
-  sku: z.string().min(1, "SKU is required"),
-  category: z.string().min(1, "Category is required"),
-  price: z.coerce.number().positive("Price must be greater than 0"),
-  stock: z.coerce.number().int().min(0, "Stock cannot be negative"),
-  status: z.enum(["Active", "Low Stock", "Out of Stock"]),
-  description: z.string().optional(),
-  imageUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
-});
-
-type ProductFormValues = z.infer<typeof productSchema>;
-
-const INITIAL_FORM_STATE: ProductFormValues = {
-  name: "",
-  sku: "",
-  category: "",
-  price: 0,
-  stock: 0,
-  status: "Active",
-  description: "",
-  imageUrl: "",
-};
-
-/**
- * in add or edit function stock badge active || Low Stock || out of stock it picks auto based on the number
- *  stock = 0 ? out of stock : stock <10 : low stock : Active 
- */
-const calculateProductStatus = (stockCount: number) => {
-  if (Number.isNaN(stockCount)) return "Active"; // Safe fallback
-  if (stockCount === 0) return "Out of Stock";
-  if (stockCount <= 10) return "Low Stock";
-  return "Active";
-};
-
-//  Main Component
+} from "../../Store/api/productsApi";
+import { useGetCategoriesQuery } from "../../Store/api/categoryApi";
 
 interface ProductDrawerProps {
   open: boolean;
   onClose: () => void;
-  product?: product | null; // If product edit exisitng one else adding new one.
+  product?: Product | null;
 }
 
-export default function ProductDrawer({
-  open,
-  onClose,
-  product,
-}: ProductDrawerProps) {
-  const isEditMode = Boolean(product);
+const STATUS_OPTIONS = ["Active", "Low Stock", "Out of Stock"] as const;
 
-  // Form Setup
+const productSchema = z.object({
+  name: z.string().trim().min(1, "Product name is required"),
+  sku: z.string().trim().min(1, "SKU is required"),
+  category: z.string().trim().min(1, "Category is required"),
+  price: z.coerce.number().min(0, "Price must be 0 or more"),
+  stock: z.coerce
+    .number()
+    .int("Stock must be a whole number")
+    .min(0, "Stock must be 0 or more"),
+  status: z.enum(STATUS_OPTIONS),
+  imageUrl: z
+    .string()
+    .trim()
+    .url("Must be a valid URL")
+    .or(z.literal(""))
+    .optional(),
+  description: z.string().trim().optional(),
+});
+
+type ProductFormValues = z.infer<typeof productSchema>;
+
+function getStatusForStock(stock: number): Product["status"] {
+  if (stock <= 0) {
+    return "Out of Stock";
+  }
+
+  if (stock <= 10) {
+    return "Low Stock";
+  }
+
+  return "Active";
+}
+
+function DrawerContent({ open, onClose, product }: ProductDrawerProps) {
+  const { data: categories = [] } = useGetCategoriesQuery();
+
+  const [addProduct, { isLoading: isAdding }] = useAddProductMutation();
+  const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
+
+  const isEditing = Boolean(product);
+  const isSaving = isAdding || isUpdating;
+
   const {
-    register,
-    handleSubmit,
     control,
-    reset,
+    handleSubmit,
+    watch,
     setValue,
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
-    defaultValues: INITIAL_FORM_STATE,
+    defaultValues: product ?? {
+      name: "",
+      sku: "",
+      category: categories[0]?.name ?? "",
+      price: 0,
+      stock: 0,
+      status: "Out of Stock",
+      imageUrl: "",
+      description: "",
+    },
   });
 
-  // API Mutations
-  const [addProduct, { isLoading: isAdding }] = useAddProductMutation();
-  const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
-  const isSubmitting = isAdding || isUpdating;
+  const stockValue = watch("stock");
 
-  // --- Effects ---
-
-  //  Sync form data when the drawer opens or the target product changes
   useEffect(() => {
-    if (open) {
-      const formData = product
-        ? { ...INITIAL_FORM_STATE, ...product }
-        : INITIAL_FORM_STATE;
+    setValue("status", getStatusForStock(Number(stockValue) || 0));
+  }, [stockValue, setValue]);
 
-      reset(formData);
+  useEffect(() => {
+    if (!product && categories.length > 0) {
+      const currentCategory = watch("category");
+
+      setValue("category", currentCategory || categories[0].name);
     }
-  }, [open, product, reset]);
+  }, [categories, product, setValue, watch]);
 
-  //  Watch the stock input and auto-update the status field
-  const currentStock = useWatch({ control, name: "stock" });
-
-  useEffect(() => {
-    const newStatus = calculateProductStatus(Number(currentStock));
-    // We use shouldValidate: true so the form knows this field is good to go
-    setValue("status", newStatus, { shouldValidate: true });
-  }, [currentStock, setValue]);
-
-  // --- reset form data if we close drawer---
-
-  const handleClose = () => {
-    reset(INITIAL_FORM_STATE);
-    onClose();
-  };
-
-  const onSubmit = async (values: ProductFormValues) => {
+  const handleFormSubmit = async (values: ProductFormValues) => {
     try {
-      if (isEditMode && product) {
-        await updateProduct({ ...product, ...values }).unwrap();
+      if (product) {
+        await updateProduct({
+          ...product,
+          ...values,
+        } as Product).unwrap();
       } else {
-        await addProduct(values).unwrap();
+        await addProduct(values as NewProduct).unwrap();
       }
-      handleClose();
+
+      onClose();
     } catch (error) {
-      console.error("Failed to save product:", error);
+      console.error("Failed to persist product:", error);
     }
   };
+
+  if (!open) {
+    return null;
+  }
 
   return (
-    <Drawer anchor="right" open={open} onClose={handleClose}>
+    <Box
+      sx={{
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: 2,
+        bgcolor: "background.paper",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <Box
-        component="form"
-        onSubmit={handleSubmit(onSubmit)}
-        noValidate
         sx={{
-          width: 360,
-          p: 3,
           display: "flex",
-          flexDirection: "column",
-          gap: 2,
+          alignItems: "center",
+          justifyContent: "space-between",
+          px: 3,
+          py: 2,
         }}
       >
-        {/* Header */}
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          {isEditing ? "Edit Product" : "Add New Product"}
+        </Typography>
+
+        <IconButton
+          onClick={onClose}
+          size="small"
+          edge="end"
+          aria-label="close"
+        >
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
+      <Divider />
+
+      <Box
+        component="form"
+        onSubmit={handleSubmit(handleFormSubmit)}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          minHeight: 0,
+        }}
+      >
+        <Stack spacing={2.5} sx={{ p: 3, flex: 1, overflowY: "auto" }}>
+          <Controller
+            name="name"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Product Name"
+                required
+                fullWidth
+                size="small"
+                error={!!errors.name}
+                helperText={errors.name?.message}
+              />
+            )}
+          />
+
+          <Stack direction="row" spacing={2}>
+            <Controller
+              name="sku"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="SKU"
+                  required
+                  fullWidth
+                  size="small"
+                  error={!!errors.sku}
+                  helperText={errors.sku?.message}
+                />
+              )}
+            />
+
+            <Controller
+              name="category"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  select
+                  label="Category"
+                  required
+                  fullWidth
+                  size="small"
+                  error={!!errors.category}
+                  helperText={errors.category?.message}
+                >
+                  {categories.map((category) => (
+                    <MenuItem key={category.id} value={category.name}>
+                      {category.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
+            />
+          </Stack>
+
+          <Stack direction="row" spacing={2}>
+            <Controller
+              name="price"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Price ($)"
+                  type="number"
+                  slotProps={{
+                    htmlInput: {
+                      min: 0,
+                      step: "0.01",
+                    },
+                  }}
+                  required
+                  fullWidth
+                  size="small"
+                  error={!!errors.price}
+                  helperText={errors.price?.message}
+                />
+              )}
+            />
+
+            <Controller
+              name="stock"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Stock"
+                  type="number"
+                  slotProps={{
+                    htmlInput: {
+                      min: 0,
+                      step: "1",
+                    },
+                  }}
+                  required
+                  fullWidth
+                  size="small"
+                  error={!!errors.stock}
+                  helperText={errors.stock?.message}
+                />
+              )}
+            />
+          </Stack>
+
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                select
+                label="Status"
+                disabled
+                required
+                fullWidth
+                size="small"
+              >
+                {STATUS_OPTIONS.map((status) => (
+                  <MenuItem key={status} value={status}>
+                    {status}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          />
+
+          <Controller
+            name="imageUrl"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Image URL"
+                fullWidth
+                size="small"
+                error={!!errors.imageUrl}
+                helperText={errors.imageUrl?.message}
+              />
+            )}
+          />
+
+          <Controller
+            name="description"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Description"
+                multiline
+                rows={3}
+                fullWidth
+                size="small"
+              />
+            )}
+          />
+        </Stack>
+
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            p: 2.5,
+            borderTop: "1px solid",
+            borderColor: "divider",
+            bgcolor: "background.paper",
           }}
         >
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            {isEditMode ? "Edit Product" : "Add New Product"}
-          </Typography>
-          <IconButton
-            onClick={handleClose}
-            size="small"
-            aria-label="Close drawer"
-          >
-            <CloseOutlined fontSize="small" />
-          </IconButton>
-        </Box>
-
-        {/* Basic Info */}
-        <TextField
-          label="Product Name"
-          fullWidth
-          size="small"
-          {...register("name")}
-          error={!!errors.name}
-          helperText={errors.name?.message}
-        />
-
-        <TextField
-          label="SKU (Stock Keeping Unit)"
-          fullWidth
-          size="small"
-          {...register("sku")}
-          error={!!errors.sku}
-          helperText={errors.sku?.message}
-        />
-
-        {/* Category Dropdown */}
-        <Controller
-          name="category"
-          control={control}
-          render={({ field }) => (
-            <Select
-              {...field}
-              displayEmpty
-              size="small"
+          <Stack direction="row" spacing={2}>
+            <Button
               fullWidth
-              error={!!errors.category}
+              variant="outlined"
+              color="inherit"
+              onClick={onClose}
+              disabled={isSaving}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                py: 1,
+              }}
             >
-              <MenuItem value="" disabled>
-                Select a category
-              </MenuItem>
-              <MenuItem value="Audio">Audio</MenuItem>
-              <MenuItem value="Accessories">Accessories</MenuItem>
-              <MenuItem value="Wearables">Wearables</MenuItem>
-              <MenuItem value="Home Appliances">Home Appliances</MenuItem>
-            </Select>
-          )}
-        />
-        {errors.category && (
-          <Typography variant="caption" color="error.main" sx={{ mt: -1.5 }}>
-            {errors.category.message}
-          </Typography>
-        )}
+              Cancel
+            </Button>
 
-        {/* Inventory & Pricing */}
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <TextField
-            label="Price"
-            type="number"
-            size="small"
-            fullWidth
-            slotProps={{ htmlInput: { step: "0.01" } }}
-            {...register("price")}
-            error={!!errors.price}
-            helperText={errors.price?.message}
-          />
-          <TextField
-            label="Stock Count"
-            type="number"
-            size="small"
-            fullWidth
-            {...register("stock")}
-            error={!!errors.stock}
-            helperText={errors.stock?.message}
-          />
-        </Box>
-
-        {/* Status (Auto-calculated, disabled for manual entry) */}
-        <Controller
-          name="status"
-          control={control}
-          render={({ field }) => (
-            <Select {...field} size="small" fullWidth disabled>
-              <MenuItem value="Active">Active (In Stock)</MenuItem>
-              <MenuItem value="Low Stock">Low Stock</MenuItem>
-              <MenuItem value="Out of Stock">Out of Stock</MenuItem>
-            </Select>
-          )}
-        />
-
-        {/* Image and Description */}
-        <TextField
-          label="Image URL"
-          placeholder="https://example.com/image.jpg"
-          fullWidth
-          size="small"
-          {...register("imageUrl")}
-          error={!!errors.imageUrl}
-          helperText={errors.imageUrl?.message}
-        />
-
-        <TextField
-          label="Description"
-          multiline
-          rows={3}
-          fullWidth
-          size="small"
-          {...register("description")}
-        />
-
-        {/* cancel -- save | add */}
-        <Box sx={{ display: "flex", gap: 1.5, mt: 1 }}>
-          <Button
-            fullWidth
-            variant="outlined"
-            onClick={handleClose}
-            sx={{ textTransform: "none" }}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            disabled={isSubmitting}
-            sx={{ textTransform: "none" }}
-          >
-            {isSubmitting ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : isEditMode ? (
-              "Save Changes"
-            ) : (
-              "Create Product"
-            )}
-          </Button>
+            <Button
+              fullWidth
+              type="submit"
+              variant="contained"
+              disabled={isSaving}
+              startIcon={
+                isSaving ? <CircularProgress size={18} color="inherit" /> : null
+              }
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                py: 1,
+              }}
+            >
+              {isSaving ? "Saving..." : isEditing ? "Save Changes" : "Create"}
+            </Button>
+          </Stack>
         </Box>
       </Box>
-    </Drawer>
+    </Box>
   );
+}
+
+export default function ProductDrawer(props: ProductDrawerProps) {
+  const drawerKey = props.product?.id ?? "new-product";
+
+  return <DrawerContent key={drawerKey} {...props} />;
 }

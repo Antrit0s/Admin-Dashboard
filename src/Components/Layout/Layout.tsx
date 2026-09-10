@@ -5,12 +5,17 @@ import { useState } from "react";
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: { xs: "column", lg: "row" },
+        minHeight: "100vh",
+      }}
+    >
       <Navbar
         open={sidebarOpen}
         onToggle={() => setSidebarOpen((prev) => !prev)}
       />
-      {/* main content of website  */}
       <Box
         component="main"
         sx={{
