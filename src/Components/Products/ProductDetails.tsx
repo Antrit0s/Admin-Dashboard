@@ -16,17 +16,19 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 
 import { useGetProductsQuery } from "../../Store/api/productsApi.ts";
 import ProductDrawer from "./ProductDrawer.tsx";
+import { useDownloadAsImage } from "../../CaptureImg.ts";
 
 export default function ProductDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
-
   const { data: products = [], isLoading, isError } = useGetProductsQuery();
+  const { ref: cardRef, isDownloading, handleDownload } = useDownloadAsImage();
 
   const product = products.find((item) => String(item.id) === String(id));
 
@@ -106,9 +108,20 @@ export default function ProductDetails() {
             >
               Edit
             </Button>
+            <Button
+              variant="outlined"
+              startIcon={<DownloadOutlinedIcon />}
+              onClick={() =>
+                handleDownload(`${product.sku || product.id}-details.png`)
+              }
+              disabled={isDownloading}
+              sx={{ textTransform: "none", borderRadius: 2 }}
+            >
+              {isDownloading ? "Preparing..." : "Download Image"}
+            </Button>
           </Stack>
 
-          <Paper variant="outlined" sx={{ p: 3 }}>
+          <Paper ref={cardRef} variant="outlined" sx={{ p: 3 }}>
             <Box
               sx={{
                 display: "flex",
