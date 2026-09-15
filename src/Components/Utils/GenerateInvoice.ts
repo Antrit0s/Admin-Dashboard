@@ -1,5 +1,5 @@
 import jsPDF from "jspdf";
-import { Order } from "./Store/api/ordersApi.ts";
+import { Order } from "../../Store/api/ordersApi.ts";
 
 export function generateOrderInvoicePdf(order: Order): void {
   const doc = new jsPDF();

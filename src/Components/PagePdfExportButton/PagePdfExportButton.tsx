@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Fab, CircularProgress, Tooltip } from "@mui/material";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import { exportToPDF } from "../../pdfExport.ts";
+import { exportToPDF } from "../Utils/pdfExport.ts";
 
 interface PagePdfExportButtonProps {
   targetRef?: React.RefObject<HTMLElement | null>;

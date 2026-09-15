@@ -39,7 +39,7 @@ import {
 } from "../../Store/api/ordersApi";
 import { Product, useGetProductsQuery } from "../../Store/api/productsApi";
 import { formatAddress } from "../../Store/api/customersApi.ts";
-import { generateOrderInvoicePdf } from "../../GenerateInvoice.ts";
+import { generateOrderInvoicePdf } from "../Utils/GenerateInvoice.ts";
 
 const PAYMENT_STATUSES: PaymentStatus[] = [
   "Pending",
@@ -194,7 +194,7 @@ export default function EditOrder() {
 
   const handleDownloadInvoice = () => {
     if (currentOrder) {
-      generateOrderInvoicePdf(currentOrder);
+      generateOrderInvoicePdf (currentOrder);
     }
   };
 

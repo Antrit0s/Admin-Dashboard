@@ -30,7 +30,7 @@ import {
 
 import ActionsMenu from "../ActionsMenu/ActionsMenu.tsx";
 import OrderDetailsDrawer from "./OrderDetailsDrawer";
-import { generateOrderInvoicePdf } from "../../GenerateInvoice.ts";
+import { generateOrderInvoicePdf } from "../Utils/GenerateInvoice.ts";
 
 const ITEMS_PER_PAGE = 8;
 

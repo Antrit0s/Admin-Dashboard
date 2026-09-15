@@ -20,7 +20,7 @@ import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 
 import { useGetProductsQuery } from "../../Store/api/productsApi.ts";
 import ProductDrawer from "./ProductDrawer.tsx";
-import { useDownloadAsImage } from "../../CaptureImg.ts";
+import { useDownloadAsImage } from "../Utils/CaptureImg.ts";
 
 export default function ProductDetails() {
   const { id } = useParams<{ id: string }>();
