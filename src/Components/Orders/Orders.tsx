@@ -30,6 +30,7 @@ import {
 
 import ActionsMenu from "../ActionsMenu/ActionsMenu.tsx";
 import OrderDetailsDrawer from "./OrderDetailsDrawer";
+import { generateOrderInvoicePdf } from "../../GenerateInvoice.ts";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -145,6 +146,10 @@ export default function Orders() {
     setSelectedOrderId(null);
   };
 
+  const handleGenerateInvoice = (order: Order) => {
+    generateOrderInvoicePdf(order);
+    setOpenMenuId(null);
+  };
   return (
     <Grid
       container
@@ -376,6 +381,7 @@ export default function Orders() {
                           onView={() => handleViewOrder(order)}
                           onEdit={() => handleEditOrder(order.id)}
                           onDelete={() => handleDeleteOrder(order.id)}
+                          onGenerateInvoice={() => handleGenerateInvoice(order)}
                         />
                       </TableCell>
                     </TableRow>

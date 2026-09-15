@@ -28,6 +28,7 @@ import {
 import {
   ArrowBack as ArrowBackIcon,
   DeleteOutlineOutlined,
+  PictureAsPdfOutlined,
 } from "@mui/icons-material";
 
 import {
@@ -38,6 +39,7 @@ import {
 } from "../../Store/api/ordersApi";
 import { Product, useGetProductsQuery } from "../../Store/api/productsApi";
 import { formatAddress } from "../../Store/api/customersApi.ts";
+import { generateOrderInvoicePdf } from "../../GenerateInvoice.ts";
 
 const PAYMENT_STATUSES: PaymentStatus[] = [
   "Pending",
@@ -190,6 +192,12 @@ export default function EditOrder() {
     setSelectedProductId("");
   };
 
+  const handleDownloadInvoice = () => {
+    if (currentOrder) {
+      generateOrderInvoicePdf(currentOrder);
+    }
+  };
+
   if (isLoadingOrders || isLoadingProducts) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
@@ -250,14 +258,28 @@ export default function EditOrder() {
       onSubmit={handleSubmit(onSubmit)}
       sx={{ maxWidth: 900, mx: "auto", p: 3 }}
     >
-      <Stack direction="row" spacing={1} sx={{ mb: 3, alignItems: "center" }}>
-        <IconButton onClick={() => navigate("/orders")} edge="start">
-          <ArrowBackIcon />
-        </IconButton>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ mb: 3, alignItems: "center", justifyContent: "space-between" }}
+      >
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <IconButton onClick={() => navigate("/orders")} edge="start">
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            Edit Order #{currentOrder.id}
+          </Typography>
+        </Stack>
 
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Edit Order #{currentOrder.id}
-        </Typography>
+        <Button
+          variant="outlined"
+          startIcon={<PictureAsPdfOutlined />}
+          onClick={handleDownloadInvoice}
+          sx={{ textTransform: "none", borderRadius: 2 }}
+        >
+          Download invoice
+        </Button>
       </Stack>
 
       <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>

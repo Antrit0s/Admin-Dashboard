@@ -36,8 +36,8 @@ const NAV_ITEMS = [
   { label: "Orders", path: "/orders", icon: ShoppingCartOutlined },
   { label: "Customers", path: "/customers", icon: PeopleAltOutlined },
   { label: "Categories", path: "/categories", icon: LocalOfferOutlined },
-  { label: "Analytics", path: "/analytics", icon: BarChartOutlined },
-  { label: "Settings", path: "/settings", icon: SettingsOutlined },
+  // { label: "Analytics", path: "/analytics", icon: BarChartOutlined },
+  // { label: "Settings", path: "/settings", icon: SettingsOutlined },
 ];
 
 interface NavbarProps {

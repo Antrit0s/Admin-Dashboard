@@ -38,6 +38,7 @@ import {
 
 import theme from "../../Theme.tsx";
 import { useGetProductsQuery } from "../../Store/api/productsApi.ts";
+import ExportToXlss from "../ExportToXlss/ExportToXlss.tsx";
 
 const KPI_DATA = [
   {
@@ -296,18 +297,21 @@ export default function Home() {
                   Sales Overview
                 </Typography>
 
-                <Select
-                  size="small"
-                  defaultValue="30"
-                  sx={{
-                    minWidth: 140,
-                    width: { xs: "100%", sm: "auto" },
-                  }}
-                >
-                  <MenuItem value="7">Last 7 days</MenuItem>
-                  <MenuItem value="30">Last 30 days</MenuItem>
-                  <MenuItem value="90">Last 90 days</MenuItem>
-                </Select>
+                <Box sx={{ display: "flex", gap: 1.5 }}>
+                  <Select
+                    size="small"
+                    defaultValue="30"
+                    sx={{
+                      minWidth: 140,
+                      width: { xs: "100%", sm: "auto" },
+                    }}
+                  >
+                    <MenuItem value="7">Last 7 days</MenuItem>
+                    <MenuItem value="30">Last 30 days</MenuItem>
+                    <MenuItem value="90">Last 90 days</MenuItem>
+                  </Select>
+                  <ExportToXlss SALES_DATA={SALES_DATA} />
+                </Box>
               </Box>
 
               <Box

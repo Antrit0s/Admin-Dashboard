@@ -4,6 +4,7 @@ import {
   DeleteOutlineOutlined,
   EditOutlined,
   MoreVertOutlined,
+  PictureAsPdfOutlined,
   RemoveRedEyeOutlined,
 } from "@mui/icons-material";
 
@@ -14,6 +15,7 @@ interface ActionsMenuProps {
   onView?: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onGenerateInvoice?: () => void;
 }
 
 export default function ActionsMenu({
@@ -23,10 +25,11 @@ export default function ActionsMenu({
   onView,
   onEdit,
   onDelete,
+  onGenerateInvoice,
 }: ActionsMenuProps) {
   if (!isOpen) {
     return (
-      <IconButton onClick={() => onToggle(id)}>
+      <IconButton onClick={() => onToggle(id)} aria-label="Open actions">
         <MoreVertOutlined fontSize="small" />
       </IconButton>
     );
@@ -37,6 +40,11 @@ export default function ActionsMenu({
       {onView && (
         <IconButton onClick={onView} title="View Details">
           <RemoveRedEyeOutlined fontSize="small" />
+        </IconButton>
+      )}
+      {onGenerateInvoice && (
+        <IconButton onClick={onGenerateInvoice} title="Download Invoice">
+          <PictureAsPdfOutlined fontSize="small" />
         </IconButton>
       )}
 
