@@ -1,102 +1,102 @@
+<div align="center">
+
 # 📊 Enterprise Admin Dashboard
 
-A modern, high-performance E-Commerce & Analytics Admin Dashboard built with **React**, **TypeScript**, **Redux Toolkit (RTK Query)**, **Material UI (MUI)**, and **Vite**.
+**A high-performance, responsive E-Commerce & Analytics Admin Dashboard built with React 18, TypeScript, Redux Toolkit (RTK Query), and Material UI (MUI v7).**
 
-Designed with an emphasis on strict type safety, modular state architecture, responsive side-by-side drawer workflows, and seamless theme switching.
+[![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Material UI](https://img.shields.io/badge/MUI_v7-007FFF?style=for-the-badge&logo=mui&logoColor=white)](https://mui.com/)
+[![Redux Toolkit](https://img.shields.io/badge/Redux_Toolkit-764ABC?style=for-the-badge&logo=redux&logoColor=white)](https://redux-toolkit.js.org/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Deployed on Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://admin-dashboard-seven-mu-48.vercel.app/)
+
+[🚀 View Live Demo](https://admin-dashboard-seven-mu-48.vercel.app/) • [📡 Backend API](https://admin-dashboard-api.onrender.com) • [🐛 Report Bug](https://github.com/Antrit0s/Admin-Dashboard/issues)
+
+</div>
 
 ---
 
-## 🚀 Live Demo & Test Credentials
+## 🌐 Live Demo & Credentials
 
-- **Frontend Deployment (Vercel):** [https://admin-dashboard-antrit0s.vercel.app](https://admin-dashboard-seven-mu-48.vercel.app/)
-- **Mock REST API Backend (Render):** [https://admin-dashboard-api.onrender.com](https://admin-dashboard-api.onrender.com)
+* **Frontend URL:** [admin-dashboard-seven-mu-48.vercel.app](https://admin-dashboard-seven-mu-48.vercel.app/)
+* **Mock REST Backend:** [admin-dashboard-api.onrender.com](https://admin-dashboard-api.onrender.com)
 
-### 🔑 Demo Login Credentials
+### 🔑 Test Access
+
 | Field | Value |
 | :--- | :--- |
 | **Username** | `admin` |
 | **Password** | `admin` |
 
-> **Note on Free-Tier Hosting:** On initial launch, the Render free-tier backend may take ~30–50 seconds to spin up from cold sleep. Subsequent API requests will be instantaneous.[cite: 10]
+> ℹ️ **Hosting Note (Cold Starts):** The API is hosted on Render's free tier. The first request may experience a ~30–50 second delay while the server wakes from sleep. Subsequent requests will respond immediately.
 
 ---
 
-## ✨ Key Features & Highlights
+## ✨ Key Features
 
-- **🔐 Authentication & Route Protection (`ProtectedRoute.tsx`):**
-  - Token-based login with persistent authentication via Redux Toolkit (`authSlice`).[cite: 12, 21, 22]
-  - Form validation powered by **Zod** and **React Hook Form**.[cite: 21]
-  - Secure path guarding with `ProtectedRoute` redirecting unauthenticated users while retaining target route memory (`location.state`).[cite: 21, 22]
+### 📈 Business Analytics & Reporting (`Home.tsx`)
+* **KPI Metrics:** Executive performance cards for Total Revenue, Active Orders, Customer Base, and Stock Levels.
+* **Interactive Charts (Recharts):** Responsive time-series line, bar, and area charts with customized mobile-friendly axis tick rendering.
+* **Excel Data Export:** One-click automated export of sales data into styled `.xlsx` spreadsheets (powered by SheetJS).
 
-- **📁 Category & Product Taxonomy Management (`Categories.tsx`, `viewCatProd.tsx`):**
-  - Full CRUD lifecycle management for categories with dynamic slug generation.[cite: 18, 19]
-  - Drill-down sub-views allowing administrators to inspect and filter all products linked to a target category.[cite: 18, 20]
-  - Slide-out inline form drawers (`CategoryDrawer.tsx`) for seamless creation and inline editing without navigating away from data views.[cite: 18, 19]
+### 🔐 Authentication & Security (`ProtectedRoute.tsx`)
+* Token-based session management managed through Redux Toolkit (`authSlice`).
+* Strict schema validation powered by **Zod** and **React Hook Form**.
+* Persistent route protection redirecting unauthenticated users while maintaining return path memory (`location.state`).
 
-- **👥 Customer Data Operations (`Customers.tsx`, `CustomerDrawer.tsx`):**
-  - Search, filter, and paginate customer records in real time.[cite: 17]
-  - Dedicated side-by-side drawer for editing customer details and reviewing registration dates and statuses.[cite: 16, 17]
+### 📦 Taxonomy & Category Management (`Categories.tsx`, `viewCatProd.tsx`)
+* Full CRUD lifecycle with automatic slugification.
+* Slide-out inline form drawer (`CategoryDrawer.tsx`) to avoid disruptive page reloads.
+* Category-to-Product drill-down views displaying linked inventory per category.
 
-- **📈 Business Analytics & Visualization (`Home.tsx`):**
-  - High-level KPI metric cards covering total revenue, active orders, customer growth, and inventory counts.[cite: 15]
-  - Responsive charts built with **Recharts** featuring custom time-series tick rendering tuned for mobile and desktop screens.[cite: 15]
+### 👥 Customer Management (`Customers.tsx`)
+* Search, real-time filtering, and paginated customer records.
+* Dedicated edit drawer (`CustomerDrawer.tsx`) for customer profiles, registration dates, and account statuses.
 
-- **🎨 Advanced Material UI (MUI) Theming & Responsive Layout:**
-  - Integrated Light/Dark theme toggling using `@mui/material/styles` (`useColorScheme`).[cite: 13]
-  - Fully responsive desktop/mobile navbar navigation (`Navbar.tsx`) with dynamic drawer controls (`useMediaQuery`).[cite: 12]
+### 🎨 Theming & Modern UI/UX
+* **Light / Dark Mode:** Instant theme switching using MUI's `@mui/material/styles` (`useColorScheme`).
+* **Responsive Layout:** Adaptive sidebar drawer navigation with collapse/expand support across mobile, tablet, and widescreen displays.
 
 ---
 
-## 🛠️ Tech Stack & Dependencies
+## 🛠️ Tech Stack
 
-| Layer | Technology | Usage / Purpose |
+| Domain | Technology | Purpose |
 | :--- | :--- | :--- |
-| **Framework & Build** | `React 18` + `Vite` | Fast HMR, ESM bundling, and component composition |
-| **Language** | `TypeScript` | Full type safety across components, RTK APIs, and forms |
-| **UI Component System** | `Material UI v7` (`@mui/material`) | Data tables, layout grids, side drawers, popovers, icons |
-| **State & Cache** | `Redux Toolkit` + `RTK Query` | Global state (`authSlice`), API caching, invalidation tags |
-| **Forms & Validation** | `react-hook-form` + `zod` | Declarative form validation, error handling, and runtime safety |
-| **Data Visualization** | `Recharts` | Interactive line, bar, and responsive metric performance charts |
-| **Routing** | `React Router v6` | SPA routing, protected path guards, sub-view navigation |
+| **Core** | `React 18` + `Vite` | Fast build toolchain, ESM support, and modular component hierarchy |
+| **Type Safety** | `TypeScript` | End-to-end type integrity across APIs, state, and UI props |
+| **UI Components** | `Material UI v7` (`@mui/material`) | System grids, surfaces, dialogs, drawers, and theme engine |
+| **State & Cache** | `Redux Toolkit` + `RTK Query` | Global state slices, automatic caching, and tag invalidation |
+| **Forms** | `react-hook-form` + `zod` | Performant form controls with declarative schema validation |
+| **Visualization** | `Recharts` | Fluid SVG charts with responsive resize containers |
+| **Spreadsheet Export**| `xlsx` (SheetJS) | Client-side Excel workbook and worksheet generation |
+| **Routing** | `React Router DOM v6` | Declarative SPA routing and route guards |
 
 ---
 
-## 📁 Project Structure
+## 📁 Repository Structure
 
 ```text
 src/
 ├── Components/
-│   ├── ActionsMenu/
-│   │   └── ActionsMenu.tsx        # Reusable table row actions menu (View, Edit, Delete)
-│   ├── Auth/
-│   │   ├── Login.tsx               # Login form view with Zod validation & visibility toggler
-│   │   └── ProtectedRoute.tsx      # Auth route guard wrapper component
-│   ├── Categories/
-│   │   ├── Categories.tsx          # Category table view, search & pagination logic
-│   │   ├── CategoryDrawer.tsx      # Slide-out drawer for adding/editing categories
-│   │   └── viewCatProd.tsx         # Category-specific product drill-down list
-│   ├── Customers/
-│   │   ├── Customers.tsx           # Customer management table & filter tools
-│   │   └── CustomerDrawer.tsx      # Customer edit drawer form
-│   ├── Home/
-│   │   └── Home.tsx                # Main dashboard analytics & summary charts
-│   ├── Layout/
-│   │   └── Layout.tsx              # Application layout container wrapper
-│   ├── NavBar/
-│   │   ├── Navbar.tsx              # Adaptive navigation drawer & top menu bar
-│   │   └── ThemeToggleButton.tsx   # Light/Dark mode color scheme switcher
-│   ├── NotFound/
-│   │   └── NotFound.tsx            # 404 Not Found fallback view
-│   └── Products/
-│       └── ProductDrawer.tsx       # Form drawer for product creation/editing
+│   ├── ActionsMenu/        # Reusable table row action dropdown (View, Edit, Delete)
+│   ├── Auth/               # Login page & ProtectedRoute guard
+│   ├── Categories/         # Category table, CategoryDrawer, and category product view
+│   ├── Customers/          # Customer table & CustomerDrawer
+│   ├── Home/               # Analytics cards, charts, and Excel export
+│   ├── Layout/             # Dashboard shell and responsive sidebar
+│   ├── NavBar/             # Header bar and Light/Dark theme toggle
+│   ├── NotFound/           # 404 error boundary page
+│   └── Products/           # Product edit/create drawer
 ├── Store/
-│   ├── api/                        # RTK Query API slice definitions
-│   │   ├── authApi.ts              # Authentication endpoints
-│   │   ├── categoryApi.ts          # Category CRUD endpoints
-│   │   ├── customersApi.ts         # Customer endpoints
-│   │   └── productsApi.ts          # Product management endpoints
+│   ├── api/                # RTK Query API slice endpoints
+│   │   ├── authApi.ts
+│   │   ├── categoryApi.ts
+│   │   ├── customersApi.ts
+│   │   └── productsApi.ts
 │   ├── Slices/
-│   │   └── authSlice.ts            # Auth credentials & token state management
-│   └── Store.ts                    # Redux root store configuration & custom hooks
-├── App.tsx                         # Top-level application routes tree
-└── main.tsx                        # Application entry point & provider wrappers
+│   │   └── authSlice.ts    # Authentication token and user credentials state
+│   └── Store.ts            # Central Redux store configuration
+├── App.tsx                 # Route tree definitions
+└── main.tsx                # Application bootstrap with providers

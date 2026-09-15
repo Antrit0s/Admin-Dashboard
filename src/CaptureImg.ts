@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 
 export function useDownloadAsImage<T extends HTMLElement = HTMLDivElement>() {
   const ref = useRef<T>(null);
@@ -10,13 +10,13 @@ export function useDownloadAsImage<T extends HTMLElement = HTMLDivElement>() {
 
     setIsDownloading(true);
     try {
-      const canvas = await html2canvas(ref.current, {
-        backgroundColor: null,
-        useCORS: true,
-        scale: 2,
+      await document.fonts.ready;
+
+      const dataUrl = await toPng(ref.current, {
+        cacheBust: true,
+        pixelRatio: 2,
       });
 
-      const dataUrl = canvas.toDataURL("image/png");
       const link = document.createElement("a");
       link.href = dataUrl;
       link.download = filename;

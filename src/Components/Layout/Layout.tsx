@@ -1,9 +1,13 @@
+import { useState, useRef } from "react";
 import Box from "@mui/material/Box";
 import { Outlet } from "react-router-dom";
 import Navbar from "../NavBar/Navbar.tsx";
-import { useState } from "react";
+import PagePdfExportButton from "../PagePdfExportButton/PagePdfExportButton.tsx";
+
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const mainContentRef = useRef<HTMLElement>(null);
+
   return (
     <Box
       sx={{
@@ -17,6 +21,7 @@ export default function Layout() {
         onToggle={() => setSidebarOpen((prev) => !prev)}
       />
       <Box
+        ref={mainContentRef}
         component="main"
         sx={{
           flexGrow: 1,
@@ -28,6 +33,8 @@ export default function Layout() {
       >
         <Outlet />
       </Box>
+
+      <PagePdfExportButton targetRef={mainContentRef} />
     </Box>
   );
 }
