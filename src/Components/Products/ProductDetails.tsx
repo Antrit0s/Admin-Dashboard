@@ -97,28 +97,30 @@ export default function ProductDetails() {
               </Typography>
             </Stack>
 
-            <Button
-              variant="outlined"
-              startIcon={<EditOutlinedIcon />}
-              onClick={() => setDrawerOpen(true)}
-              sx={{
-                textTransform: "none",
-                borderRadius: 2,
-              }}
-            >
-              Edit
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<DownloadOutlinedIcon />}
-              onClick={() =>
-                handleDownload(`${product.sku || product.id}-details.png`)
-              }
-              disabled={isDownloading}
-              sx={{ textTransform: "none", borderRadius: 2 }}
-            >
-              {isDownloading ? "Preparing..." : "Download Image"}
-            </Button>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Button
+                variant="outlined"
+                startIcon={<EditOutlinedIcon />}
+                onClick={() => setDrawerOpen(true)}
+                sx={{
+                  textTransform: "none",
+                  borderRadius: 2,
+                }}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="outlined"
+                startIcon={<DownloadOutlinedIcon />}
+                onClick={() =>
+                  handleDownload(`${product.sku || product.id}-details.png`)
+                }
+                disabled={isDownloading}
+                sx={{ textTransform: "none", borderRadius: 2 }}
+              >
+                {isDownloading ? "Preparing..." : "Download Image"}
+              </Button>
+            </Box>
           </Stack>
 
           <Paper ref={cardRef} variant="outlined" sx={{ p: 3 }}>
