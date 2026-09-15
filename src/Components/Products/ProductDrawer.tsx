@@ -36,16 +36,18 @@ const productSchema = z.object({
   name: z.string().trim().min(1, "Product name is required"),
   sku: z.string().trim().min(1, "SKU is required"),
   category: z.string().trim().min(1, "Category is required"),
-  price: z.coerce.number().min(0, "Price must be 0 or more"),
-  stock: z.coerce
-    .number()
+  price: z
+    .number({ error: "Price must be a number" })
+    .min(0, "Price must be 0 or more"),
+  stock: z
+    .number({ error: "Stock must be a number" })
     .int("Stock must be a whole number")
     .min(0, "Stock must be 0 or more"),
   status: z.enum(STATUS_OPTIONS),
   imageUrl: z
     .string()
     .trim()
-    .url("Must be a valid URL")
+    .url({ error: "Must be a valid URL" })
     .or(z.literal(""))
     .optional(),
   description: z.string().trim().optional(),
@@ -241,6 +243,11 @@ function DrawerContent({ open, onClose, product }: ProductDrawerProps) {
               render={({ field }) => (
                 <TextField
                   {...field}
+                  onChange={(e) =>
+                    field.onChange(
+                      e.target.value === "" ? 0 : Number(e.target.value),
+                    )
+                  }
                   label="Price ($)"
                   type="number"
                   slotProps={{
@@ -264,6 +271,11 @@ function DrawerContent({ open, onClose, product }: ProductDrawerProps) {
               render={({ field }) => (
                 <TextField
                   {...field}
+                  onChange={(e) =>
+                    field.onChange(
+                      e.target.value === "" ? 0 : Number(e.target.value),
+                    )
+                  }
                   label="Stock"
                   type="number"
                   slotProps={{
