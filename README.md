@@ -1,102 +1,166 @@
-<div align="center">
-
 # 📊 Enterprise Admin Dashboard
 
-**A high-performance, responsive E-Commerce & Analytics Admin Dashboard built with React 18, TypeScript, Redux Toolkit (RTK Query), and Material UI (MUI v7).**
-
-[![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Material UI](https://img.shields.io/badge/MUI_v7-007FFF?style=for-the-badge&logo=mui&logoColor=white)](https://mui.com/)
-[![Redux Toolkit](https://img.shields.io/badge/Redux_Toolkit-764ABC?style=for-the-badge&logo=redux&logoColor=white)](https://redux-toolkit.js.org/)
-[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Deployed on Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://admin-dashboard-seven-mu-48.vercel.app/)
-
-[🚀 View Live Demo](https://admin-dashboard-seven-mu-48.vercel.app/) • [📡 Backend API](https://admin-dashboard-api.onrender.com) • [🐛 Report Bug](https://github.com/Antrit0s/Admin-Dashboard/issues)
-
-</div>
+A modern E-Commerce & Analytics admin dashboard built with **React 19**, **TypeScript**, **Material UI**, **Redux Toolkit (RTK Query)** and **Vite**. Focus: type safety, scalable state architecture, cached data fetching, and a responsive UI.
 
 ---
 
-## 🌐 Live Demo & Credentials
+## 🚀 Live Demo
 
-* **Frontend URL:** [admin-dashboard-seven-mu-48.vercel.app](https://admin-dashboard-seven-mu-48.vercel.app/)
-* **Mock REST Backend:** [admin-dashboard-api.onrender.com](https://admin-dashboard-api.onrender.com)
+- **Frontend (Vercel):** <https://admin-dashboard-seven-mu-48.vercel.app>
+- **Mock REST API (Render):** <https://admin-dashboard-api.onrender.com>
 
-### 🔑 Test Access
+### 🔑 Demo Login
 
-| Field | Value |
-| :--- | :--- |
-| **Username** | `admin` |
-| **Password** | `admin` |
+| Field                | Value   |
+| -------------------- | ------- |
+| **Username / Email** | `admin` |
+| **Password**         | `admin` |
 
-> ℹ️ **Hosting Note (Cold Starts):** The API is hosted on Render's free tier. The first request may experience a ~30–50 second delay while the server wakes from sleep. Subsequent requests will respond immediately.
+> **Free-tier note:** the Render backend sleeps when idle. First request can take ~30–50 seconds. After that it is fast.
 
 ---
 
-## ✨ Key Features
+## ✨ Features
 
-### 📈 Business Analytics & Reporting (`Home.tsx`)
-* **KPI Metrics:** Executive performance cards for Total Revenue, Active Orders, Customer Base, and Stock Levels.
-* **Interactive Charts (Recharts):** Responsive time-series line, bar, and area charts with customized mobile-friendly axis tick rendering.
-* **Excel Data Export:** One-click automated export of sales data into styled `.xlsx` spreadsheets (powered by SheetJS).
+- **🔐 Authentication**
+  - Token-based auth stored in `localStorage`
+  - `prepareHeaders` injects `Bearer <token>` into every API request
+  - Route guards protect dashboard pages
 
-### 🔐 Authentication & Security (`ProtectedRoute.tsx`)
-* Token-based session management managed through Redux Toolkit (`authSlice`).
-* Strict schema validation powered by **Zod** and **React Hook Form**.
-* Persistent route protection redirecting unauthenticated users while maintaining return path memory (`location.state`).
+- **📦 Product Management (CRUD)**
+  - Data tables with sorting, filtering and pagination
+  - Drawer/modal forms to create and update items
+  - Form validation with React Hook Form + Zod
+  - Cache invalidation via RTK Query `tagTypes` (`Products`, `Categories`, `Orders`, `Users`, `Customers`, `Analytics`)
 
-### 📦 Taxonomy & Category Management (`Categories.tsx`, `viewCatProd.tsx`)
-* Full CRUD lifecycle with automatic slugification.
-* Slide-out inline form drawer (`CategoryDrawer.tsx`) to avoid disruptive page reloads.
-* Category-to-Product drill-down views displaying linked inventory per category.
+- **📈 Analytics**
+  - KPI cards (revenue, orders, conversion rate)
+  - Interactive charts and summary breakdowns
 
-### 👥 Customer Management (`Customers.tsx`)
-* Search, real-time filtering, and paginated customer records.
-* Dedicated edit drawer (`CustomerDrawer.tsx`) for customer profiles, registration dates, and account statuses.
+- **🧾 Invoice PDF Export**
+  - Export an order invoice as a PDF (`jspdf`, `jspdf-autotable`)
+  - Line items rendered as a table inside the PDF
 
-### 🎨 Theming & Modern UI/UX
-* **Light / Dark Mode:** Instant theme switching using MUI's `@mui/material/styles` (`useColorScheme`).
-* **Responsive Layout:** Adaptive sidebar drawer navigation with collapse/expand support across mobile, tablet, and widescreen displays.
+- **🖼️ Product Image Export**
+  - Capture a product card/view as an image (`html-to-image`, `html2canvas`)
+  - Download the generated image directly from the browser
+
+- **📊 Excel Export**
+  - Export table data to `.xlsx` (`xlsx`)
+
+- **🎨 UI & Theming**
+  - Responsive, mobile-first layout and navigation drawer
+  - Central theme provider for consistent typography, colors, elevation
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Domain | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Core** | `React 18` + `Vite` | Fast build toolchain, ESM support, and modular component hierarchy |
-| **Type Safety** | `TypeScript` | End-to-end type integrity across APIs, state, and UI props |
-| **UI Components** | `Material UI v7` (`@mui/material`) | System grids, surfaces, dialogs, drawers, and theme engine |
-| **State & Cache** | `Redux Toolkit` + `RTK Query` | Global state slices, automatic caching, and tag invalidation |
-| **Forms** | `react-hook-form` + `zod` | Performant form controls with declarative schema validation |
-| **Visualization** | `Recharts` | Fluid SVG charts with responsive resize containers |
-| **Spreadsheet Export**| `xlsx` (SheetJS) | Client-side Excel workbook and worksheet generation |
-| **Routing** | `React Router DOM v6` | Declarative SPA routing and route guards |
+| Layer                | Technology                                   | Purpose                                          |
+| -------------------- | -------------------------------------------- | ------------------------------------------------ |
+| UI library           | `React 19` + `TypeScript`                    | Typed component composition                      |
+| Components           | `MUI` (`@mui/material`, Data Grid, X Charts) | Layout, tables, charts, icons                    |
+| Build tool           | `Vite`                                       | Fast HMR and bundling                            |
+| State                | `Redux Toolkit`                              | Slices (`authSlice`, UI state)                   |
+| Data fetching        | `RTK Query` (`apiSlice`)                     | Caching, refetching, tag-based invalidation      |
+| Routing              | `React Router` v7                            | Client-side routing, SPA fallback via `vercel.json` |
+| Forms & validation   | `React Hook Form` + `Zod`                    | Typed forms and schema validation                |
+| Charts               | `MUI X Charts` + `Recharts`                  | Dashboard visualizations                         |
+| Mock backend         | `json-server`                                | REST API served from `db.json`                   |
+| Hosting              | `Vercel` + `Render`                          | Frontend + mock API deployment                   |
 
 ---
 
-## 📁 Repository Structure
+## 📁 Project Structure
 
-```text
-src/
-├── Components/
-│   ├── ActionsMenu/        # Reusable table row action dropdown (View, Edit, Delete)
-│   ├── Auth/               # Login page & ProtectedRoute guard
-│   ├── Categories/         # Category table, CategoryDrawer, and category product view
-│   ├── Customers/          # Customer table & CustomerDrawer
-│   ├── Home/               # Analytics cards, charts, and Excel export
-│   ├── Layout/             # Dashboard shell and responsive sidebar
-│   ├── NavBar/             # Header bar and Light/Dark theme toggle
-│   ├── NotFound/           # 404 error boundary page
-│   └── Products/           # Product edit/create drawer
-├── Store/
-│   ├── api/                # RTK Query API slice endpoints
-│   │   ├── authApi.ts
-│   │   ├── categoryApi.ts
-│   │   ├── customersApi.ts
-│   │   └── productsApi.ts
-│   ├── Slices/
-│   │   └── authSlice.ts    # Authentication token and user credentials state
-│   └── Store.ts            # Central Redux store configuration
-├── App.tsx                 # Route tree definitions
-└── main.tsx                # Application bootstrap with providers
+```
+Admin-Dashboard/
+├── public/
+├── src/
+│   ├── assets/              # Static assets, icons, images
+│   ├── Components/
+│   │   ├── Auth/            # Sign-in forms & route guards
+│   │   ├── Home/            # Dashboard KPIs and charts
+│   │   ├── Layout/          # Main dashboard layout wrapper
+│   │   ├── NavBar/          # Navigation, profile menu, breadcrumbs
+│   │   ├── NotFound/        # 404 page
+│   │   └── Products/        # Product list, mutations, drawer forms
+│   ├── Store/
+│   │   ├── api/
+│   │   │   └── apiSlice.ts  # RTK Query entry point & baseQuery
+│   │   ├── Slices/
+│   │   │   └── authSlice.ts # Auth state slice
+│   │   └── Store.ts         # Root Redux store
+│   ├── App.tsx              # Route tree
+│   ├── main.tsx             # DOM mount + Redux Provider
+│   ├── Theme.tsx            # Theme provider
+│   └── vite-env.d.ts        # Env variable typings
+├── db.json                  # Mock database
+├── vercel.json              # SPA rewrite rules
+├── tsconfig*.json           # TypeScript configs
+└── package.json
+```
+
+---
+
+## ⚙️ Getting Started
+
+### Prerequisites
+
+- Node.js 18+ (latest LTS recommended)
+- npm
+
+### Installation
+
+```bash
+git clone https://github.com/Antrit0s/Admin-Dashboard.git
+cd Admin-Dashboard
+npm install
+```
+
+### Run locally
+
+Start frontend and mock API together:
+
+```bash
+npm run dev:all
+```
+
+Or run them separately:
+
+```bash
+npm run dev      # Vite dev server
+npm run server   # json-server on db.json
+```
+
+Log in with `admin` / `admin`.
+
+### Scripts
+
+| Script            | Description                                  |
+| ----------------- | -------------------------------------------- |
+| `npm run dev`     | Start Vite dev server                        |
+| `npm run server`  | Start `json-server` using `db.json`          |
+| `npm run dev:all` | Run dev server and mock API concurrently     |
+| `npm run build`   | Type-check (`tsc -b`) and build for production |
+| `npm run preview` | Preview the production build                 |
+| `npm run lint`    | Run ESLint                                   |
+
+---
+
+## 🌐 Deployment
+
+- **Frontend:** Vercel. `vercel.json` rewrites all routes to `index.html` so direct URLs and refreshes work with React Router.
+- **Mock API:** Render, running `json-server` against `db.json`.
+
+---
+
+## 🎬 Inspiration
+
+Inspired by this YouTube tutorial series: <https://youtu.be/wYpCWwD1oz0?list=PLEYW3pZS6IQ_a-iYAno4VsZonrikphq8L>
+
+---
+
+## 📄 License
+
+Add a license (e.g. MIT) if you want others to reuse this project.
