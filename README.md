@@ -160,7 +160,3 @@ Log in with `admin` / `admin`.
 Inspired by this YouTube tutorial series: <https://youtu.be/wYpCWwD1oz0?list=PLEYW3pZS6IQ_a-iYAno4VsZonrikphq8L>
 
 ---
-
-## 📄 License
-
-Add a license (e.g. MIT) if you want others to reuse this project.
